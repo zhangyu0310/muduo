@@ -40,14 +40,6 @@ TcpServer::~TcpServer()
 {
   loop_->assertInLoopThread();
   LOG_TRACE << "TcpServer::~TcpServer [" << name_ << "] destructing";
-
-  for (auto& item : connections_)
-  {
-    TcpConnectionPtr conn(item.second);
-    item.second.reset();
-    conn->getLoop()->runInLoop(
-      std::bind(&TcpConnection::connectDestroyed, conn));
-  }
 }
 
 void TcpServer::setThreadNum(int numThreads)
@@ -88,31 +80,9 @@ void TcpServer::newConnection(int sockfd, const InetAddress& peerAddr)
                                           sockfd,
                                           localAddr,
                                           peerAddr));
-  connections_[connName] = conn;
+  ioLoop->connections_[connName] = conn;
   conn->setConnectionCallback(connectionCallback_);
   conn->setMessageCallback(messageCallback_);
   conn->setWriteCompleteCallback(writeCompleteCallback_);
-  conn->setCloseCallback(
-      std::bind(&TcpServer::removeConnection, this, _1)); // FIXME: unsafe
   ioLoop->runInLoop(std::bind(&TcpConnection::connectEstablished, conn));
 }
-
-void TcpServer::removeConnection(const TcpConnectionPtr& conn)
-{
-  // FIXME: unsafe
-  loop_->runInLoop(std::bind(&TcpServer::removeConnectionInLoop, this, conn));
-}
-
-void TcpServer::removeConnectionInLoop(const TcpConnectionPtr& conn)
-{
-  loop_->assertInLoopThread();
-  LOG_INFO << "TcpServer::removeConnectionInLoop [" << name_
-           << "] - connection " << conn->name();
-  size_t n = connections_.erase(conn->name());
-  (void)n;
-  assert(n == 1);
-  EventLoop* ioLoop = conn->getLoop();
-  ioLoop->queueInLoop(
-      std::bind(&TcpConnection::connectDestroyed, conn));
-}
-

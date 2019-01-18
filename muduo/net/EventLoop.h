@@ -14,6 +14,7 @@
 #include <atomic>
 #include <functional>
 #include <vector>
+#include <map>
 
 #include <boost/any.hpp>
 
@@ -127,6 +128,9 @@ class EventLoop : noncopyable
   { return &context_; }
 
   static EventLoop* getEventLoopOfCurrentThread();
+
+  typedef std::map<string, TcpConnectionPtr> ConnectionMap;
+  ConnectionMap connections_;
 
  private:
   void abortNotInLoopThread();

@@ -342,6 +342,8 @@ void TcpConnection::connectDestroyed()
     connectionCallback_(shared_from_this());
   }
   channel_->remove();
+  //auto conn = loop_->connections_[name_];
+  loop_->connections_.erase(name_);
 }
 
 void TcpConnection::handleRead(Timestamp receiveTime)
@@ -417,7 +419,9 @@ void TcpConnection::handleClose()
   TcpConnectionPtr guardThis(shared_from_this());
   connectionCallback_(guardThis);
   // must be the last line
-  closeCallback_(guardThis);
+  //closeCallback_(guardThis);
+  loop_->queueInLoop(
+      std::bind(&TcpConnection::connectDestroyed, guardThis));
 }
 
 void TcpConnection::handleError()

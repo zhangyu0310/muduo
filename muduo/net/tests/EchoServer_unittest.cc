@@ -13,7 +13,7 @@
 using namespace muduo;
 using namespace muduo::net;
 
-int numThreads = 0;
+int numThreads = 3;
 
 class EchoServer
 {

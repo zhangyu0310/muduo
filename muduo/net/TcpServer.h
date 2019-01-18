@@ -92,12 +92,6 @@ class TcpServer : noncopyable
  private:
   /// Not thread safe, but in loop
   void newConnection(int sockfd, const InetAddress& peerAddr);
-  /// Thread safe.
-  void removeConnection(const TcpConnectionPtr& conn);
-  /// Not thread safe, but in loop
-  void removeConnectionInLoop(const TcpConnectionPtr& conn);
-
-  typedef std::map<string, TcpConnectionPtr> ConnectionMap;
 
   EventLoop* loop_;  // the acceptor loop
   const string ipPort_;
@@ -111,7 +105,6 @@ class TcpServer : noncopyable
   AtomicInt32 started_;
   // always in loop thread
   int nextConnId_;
-  ConnectionMap connections_;
 };
 
 }  // namespace net

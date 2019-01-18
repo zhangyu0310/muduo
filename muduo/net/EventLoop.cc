@@ -14,6 +14,7 @@
 #include <muduo/net/Poller.h>
 #include <muduo/net/SocketsOps.h>
 #include <muduo/net/TimerQueue.h>
+#include <muduo/net/TcpConnection.h>
 
 #include <algorithm>
 
@@ -97,6 +98,11 @@ EventLoop::~EventLoop()
   wakeupChannel_->disableAll();
   wakeupChannel_->remove();
   ::close(wakeupFd_);
+  for (auto& it : connections_)
+  {
+    TcpConnectionPtr conn(it.second);
+    conn->connectDestroyed();
+  }
   t_loopInThisThread = NULL;
 }
 
